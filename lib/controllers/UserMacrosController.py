@@ -1,15 +1,19 @@
+from datetime import date
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from lib.database.config import get_db
-from lib.database.models import UserMacros, UserOptions
+from lib.database.models import UserMacros, UserOptions, Meal
+from lib.utils.DateUtils import get_dates
 from lib.utils.UserMacrosUtils import calculate_user_macros, calculate_water_intake
 from lib.utils.UserUtils import get_user_from_token
 
 userMacrosRouter = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 class UserMacrosSchema(BaseModel):
     calories: int
@@ -17,9 +21,10 @@ class UserMacrosSchema(BaseModel):
     carbs: int
     fats: int
 
+
 @userMacrosRouter.post("/update-user_macros", status_code=201)
 def update_user_macros(user_macros: UserMacrosSchema, db: Session = Depends(get_db),
-                      token: str = Depends(oauth2_scheme)):
+                       token: str = Depends(oauth2_scheme)):
     try:
         print(token)
 
@@ -109,18 +114,46 @@ def recommended_user_macros(db: Session = Depends(get_db), token: str = Depends(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userMacrosRouter.get("/get-water-intake", status_code=200)
-def get_water_intake(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@userMacrosRouter.get("/get_macros_by_day", status_code=200)
+def get_macros_by_day(
+        day: str,  # Date in 'YYYY-MM-DD' format
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme)
+):
     try:
         # Get user from token
         user = get_user_from_token(token, db)
 
-        # Retrieve UserOptions for the user
-        user_options = db.query(UserOptions).filter(UserOptions.userUuid == user.uuid).first()
-        if not user_options:
-            raise HTTPException(status_code=404, detail="UserOptions not found for this user.")
+        start_of_day, end_of_day = get_dates(day)
 
-        water_intake = calculate_water_intake(user_options)
+        # Query meals for the specific day
+        meals = db.query(Meal).filter(
+            Meal.userUuid == user.uuid,
+            Meal.date >= start_of_day,
+            Meal.date <= end_of_day
+        ).all()
+
+        # Initialize totals
+        total_calories = 0
+        total_proteins = 0
+        total_fats = 0
+        total_carbs = 0
+
+        # Sum up the values from the meals
+        for meal in meals:
+            total_calories += meal.calories
+            total_proteins += meal.proteins
+            total_fats += meal.fats
+            total_carbs += meal.carbs
+
+        # Return the total macros for the given day
+        return {
+            "date": day,
+            "calories": total_calories,
+            "proteins": total_proteins,
+            "fats": total_fats,
+            "carbs": total_carbs
+        }
 
     except HTTPException as e:
         raise e

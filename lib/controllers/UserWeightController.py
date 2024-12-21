@@ -1,5 +1,4 @@
-from datetime import datetime, date
-from typing import Optional
+from datetime import date
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -7,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from lib.database.config import get_db
-from lib.database.models import MealType, Meal
+from lib.database.models import UserWeight
 from lib.utils.DateUtils import get_dates
 from lib.utils.UserUtils import get_user_from_token
 
@@ -15,41 +14,36 @@ userMacrosRouter = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-class MealCreate(BaseModel):
-    title: str
-    weight: int
-    mealType: MealType
-    calories: int
-    proteins: int
-    fats: int
-    carbs: int
+# Pydantic Model for adding weight
+class UserWeightCreate(BaseModel):
+    weight: float
 
 
-# Endpoint to create a meal with user inputted macros
-@userMacrosRouter.post("/create_meal", status_code=201)
-def create_meal(meal: MealCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+class UserWeightResponse(BaseModel):
+    userUuid: str
+    weight: float
+    date: str
+
+    class Config:
+        orm_mode = True
+
+
+@userMacrosRouter.post("/add_weight", status_code=201)
+def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
-        print(token)
-
         # Get user from token
         user = get_user_from_token(token, db)
 
-        new_meal = Meal(
-            uuid=user.uuid,
-            title=meal.title,
-            weight=meal.weight,
-            mealType=meal.mealType,
-            calories=meal.calories,
-            proteins=meal.proteins,
-            fats=meal.fats,
-            carbs=meal.carbs,
+        new_weight = UserWeight(
+            userUuid=user.uuid,
+            weight=weight.weight,
             date=date.today()
         )
 
-        db.add(new_meal)
+        db.add(new_weight)
         db.commit()
 
-        return {"message": "UserMeal saved successfully", "data": meal.dict()}
+        return {"message": "Weight added successfully", "data": weight.dict()}
 
     except HTTPException as e:
         raise e
@@ -58,8 +52,8 @@ def create_meal(meal: MealCreate, db: Session = Depends(get_db), token: str = De
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userMacrosRouter.get("/get_meals", status_code=200)
-def get_meals(
+@userMacrosRouter.get("/get_weights", response_model=list[UserWeightResponse])
+def get_user_weights(
         day: str,
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
@@ -68,15 +62,16 @@ def get_meals(
         # Get user from token
         user = get_user_from_token(token, db)
 
+        # Validate and parse the start_date and end_date if provided
         start_of_day, end_of_day = get_dates(day)
 
-        meals = db.query(Meal).filter(
-            Meal.userUuid == user.uuid,
-            Meal.date >= start_of_day,
-            Meal.date <= end_of_day
+        weights = db.query(UserWeight).filter(
+            UserWeight.userUuid == user.uuid,
+            UserWeight.date >= start_of_day,
+            UserWeight.date <= end_of_day
         ).all()
 
-        return meals
+        return weights
 
     except HTTPException as e:
         raise e

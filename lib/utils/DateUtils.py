@@ -1,23 +1,16 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import HTTPException
 
 
-def get_dates(start_date, end_date):
-    if start_date:
-        try:
-            parsed_start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid start_date format. Use 'YYYY-MM-DD'")
-    else:
-        parsed_start_date = None
+def get_dates(day):
+    try:
+        target_date = date.fromisoformat(day)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use 'YYYY-MM-DD'.")
 
-    if end_date:
-        try:
-            parsed_end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid end_date format. Use 'YYYY-MM-DD'")
-    else:
-        parsed_end_date = None
+        # Calculate start and end of the day
+    start_of_day = datetime.combine(target_date, datetime.min.time())  # 00:00:00 of the target date
+    end_of_day = datetime.combine(target_date, datetime.max.time())  # 23:59:59 of the target date
 
-    return parsed_start_date, parsed_end_date
+    return start_of_day, end_of_day
