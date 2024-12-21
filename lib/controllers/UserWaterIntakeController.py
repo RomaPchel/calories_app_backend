@@ -1,6 +1,5 @@
 import uuid
-from datetime import date, datetime
-from typing import Optional
+from datetime import date
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -13,7 +12,7 @@ from lib.utils.DateUtils import get_dates
 from lib.utils.UserMacrosUtils import calculate_water_intake
 from lib.utils.UserUtils import get_user_from_token
 
-waterIntakeRouter = APIRouter()
+userWaterIntakesRouter = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -21,7 +20,7 @@ class UserWaterSchema(BaseModel):
     ml: int
 
 
-@waterIntakeRouter.post("/add_water_intake")
+@userWaterIntakesRouter.post("/add_water_intake")
 def add_water_intake(water_intake: UserWaterSchema, db: Session = Depends(get_db),
                      token: str = Depends(oauth2_scheme)):
     try:
@@ -51,8 +50,8 @@ def add_water_intake(water_intake: UserWaterSchema, db: Session = Depends(get_db
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@waterIntakeRouter.delete("/delete_water_intake/{water_intake_id}")
-def delete_water_intake(water_intake_id: uuid, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@userWaterIntakesRouter.delete("/delete_water_intake/{water_intake_id}")
+def delete_water_intake(water_intake_id: uuid.UUID, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         # Get user from token
         user = get_user_from_token(token, db)
@@ -77,7 +76,7 @@ def delete_water_intake(water_intake_id: uuid, db: Session = Depends(get_db), to
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@waterIntakeRouter.get("/get_water_intakes")
+@userWaterIntakesRouter.get("/get_water_intakes")
 def get_water_intakes(
         day: str,
         db: Session = Depends(get_db),
@@ -104,7 +103,7 @@ def get_water_intakes(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@waterIntakeRouter.get("/recommended-water_intake", status_code=200)
+@userWaterIntakesRouter.get("/recommended-water_intake", status_code=200)
 def recommended_water_intake(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         # Get user from token

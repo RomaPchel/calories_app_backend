@@ -1,5 +1,4 @@
-from datetime import datetime, date
-from typing import Optional
+from datetime import date
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -11,7 +10,7 @@ from lib.database.models import MealType, Meal
 from lib.utils.DateUtils import get_dates
 from lib.utils.UserUtils import get_user_from_token
 
-userMacrosRouter = APIRouter()
+userMealsRouter = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -26,7 +25,7 @@ class MealCreate(BaseModel):
 
 
 # Endpoint to create a meal with user inputted macros
-@userMacrosRouter.post("/create_meal", status_code=201)
+@userMealsRouter.post("/create_meal", status_code=201)
 def create_meal(meal: MealCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         print(token)
@@ -58,7 +57,7 @@ def create_meal(meal: MealCreate, db: Session = Depends(get_db), token: str = De
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userMacrosRouter.get("/get_meals", status_code=200)
+@userMealsRouter.get("/get_meals", status_code=200)
 def get_meals(
         day: str,
         db: Session = Depends(get_db),

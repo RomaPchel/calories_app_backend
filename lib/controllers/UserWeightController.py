@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -7,10 +8,10 @@ from sqlalchemy.orm import Session
 
 from lib.database.config import get_db
 from lib.database.models import UserWeight
-from lib.utils.DateUtils import get_dates
+from lib.utils.DateUtils import get_dates, parse_dates
 from lib.utils.UserUtils import get_user_from_token
 
-userMacrosRouter = APIRouter()
+userWeightRouter = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -28,7 +29,7 @@ class UserWeightResponse(BaseModel):
         orm_mode = True
 
 
-@userMacrosRouter.post("/add_weight", status_code=201)
+@userWeightRouter.post("/add_weight", status_code=201)
 def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         # Get user from token
@@ -52,9 +53,10 @@ def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), tok
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userMacrosRouter.get("/get_weights", response_model=list[UserWeightResponse])
+@userWeightRouter.get("/get_weights", response_model=list[UserWeightResponse])
 def get_user_weights(
-        day: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
 ):
@@ -62,14 +64,18 @@ def get_user_weights(
         # Get user from token
         user = get_user_from_token(token, db)
 
-        # Validate and parse the start_date and end_date if provided
-        start_of_day, end_of_day = get_dates(day)
+        start_of_day, end_of_day = parse_dates(start_date, end_date)
 
-        weights = db.query(UserWeight).filter(
-            UserWeight.userUuid == user.uuid,
-            UserWeight.date >= start_of_day,
-            UserWeight.date <= end_of_day
-        ).all()
+        query = db.query(UserWeight).filter(UserWeight.userUuid == user.uuid)
+
+        if start_of_day and end_of_day:
+            query = query.filter(start_of_day <= UserWeight.date <= end_of_day)
+        elif start_of_day:
+            query = query.filter(UserWeight.date >= start_of_day)
+        elif end_of_day:
+            query = query.filter(UserWeight.date <= end_of_day)
+
+        weights = query.all()
 
         return weights
 

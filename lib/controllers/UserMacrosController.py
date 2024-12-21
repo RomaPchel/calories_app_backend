@@ -1,5 +1,3 @@
-from datetime import date
-
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
@@ -8,7 +6,7 @@ from sqlalchemy.orm import Session
 from lib.database.config import get_db
 from lib.database.models import UserMacros, UserOptions, Meal
 from lib.utils.DateUtils import get_dates
-from lib.utils.UserMacrosUtils import calculate_user_macros, calculate_water_intake
+from lib.utils.UserMacrosUtils import calculate_user_macros
 from lib.utils.UserUtils import get_user_from_token
 
 userMacrosRouter = APIRouter()
