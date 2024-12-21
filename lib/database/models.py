@@ -1,5 +1,7 @@
+import enum
+
 from sqlalchemy import (
-    Column, String, Float, Date, Enum, ForeignKey, Boolean, BigInteger
+    Column, String, Float, Date, Enum, ForeignKey, Boolean, BigInteger, Integer
 )
 from sqlalchemy.orm import relationship, declarative_base
 
@@ -20,16 +22,35 @@ class User(Base):
     favourite_recipes = relationship("FavouriteRecipes", back_populates="user")
     user_meals = relationship("UserMeals", back_populates="user")
 
+
+class Gender(enum.Enum):
+    MALE = "male"
+    FEMALE = "female"
+
+
+class WeightGoal(enum.Enum):
+    LOSE = "lose",
+    KEEP = "keep",
+    GAIN = "gain",
+
+
+class ActivityLevel(enum.Enum):
+    SEDENTARY = "sedentary",
+    LOW_ACTIVE = "low_active",
+    ACTIVE = "active",
+    VERY_ACTIVE = "very_active",
+
+
 class UserOptions(Base):
     __tablename__ = 'UserOptions'
 
     userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)  # Correct ForeignKey reference
-    gender = Column(String)
-    height = Column(String)
-    weight = Column(String)
-    weightGoal = Column(String)
-    activityLevel = Column(String)
-    age = Column(String)
+    gender = Column(Enum(Gender), nullable=False)
+    height = Column(Integer)
+    weight = Column(Float)
+    weightGoal = Column(Enum(WeightGoal), nullable=False)
+    activityLevel = Column(Enum(ActivityLevel), nullable=False)
+    age = Column(Integer)
 
     user = relationship("User", back_populates="user_options")
 
@@ -57,8 +78,7 @@ class WaterIntake(Base):
     __tablename__ = 'WaterIntake'
 
     uuid = Column(BigInteger, primary_key=True, autoincrement=True)
-    goal = Column(Float)
-    currentIntake = Column(Float)
+    currentIntake = Column(Integer)
     date = Column(Date)
 
     userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
@@ -78,6 +98,12 @@ class Recipe(Base):
 
     favourite_recipes = relationship("FavouriteRecipes", back_populates="recipe")
 
+class MealType(enum.Enum):
+    Breakfast = "breakfast"
+    Lunch = "lunch"
+    Dinner = "dinner"
+    Snack = "snack"
+
 class Meal(Base):
     __tablename__ = 'Meal'
 
@@ -87,10 +113,12 @@ class Meal(Base):
     proteins = Column(BigInteger)
     calories = Column(BigInteger)
     carbs = Column(BigInteger)
-    mealType = Column(BigInteger)
+    mealType = Column(Enum(MealType), nullable=False)
     weight = Column(BigInteger)
+    date = Column(Date)
 
-    user_meals = relationship("UserMeals", back_populates="meal")
+    userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
+    user = relationship("User", back_populates="meal")
 
 class FavouriteRecipes(Base):
     __tablename__ = 'FavouriteRecipes'
@@ -101,14 +129,3 @@ class FavouriteRecipes(Base):
 
     user = relationship("User", back_populates="favourite_recipes")
     recipe = relationship("Recipe", back_populates="favourite_recipes")
-
-class UserMeals(Base):
-    __tablename__ = 'UserMeals'
-
-    uuid = Column(String, primary_key=True)  # UUID
-    userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
-    mealUuid = Column(String, ForeignKey('Meal.uuid'))
-    isCustom = Column(Boolean)
-
-    user = relationship("User", back_populates="user_meals")
-    meal = relationship("Meal", back_populates="user_meals")

@@ -1,11 +1,11 @@
 import uuid
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Depends
+from jose import jwt
+from passlib.hash import bcrypt
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
-from passlib.hash import bcrypt
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
 
 from lib.database.config import get_db
 from lib.database.models import User
