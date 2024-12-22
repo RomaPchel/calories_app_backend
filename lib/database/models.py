@@ -3,25 +3,10 @@ import enum
 from sqlalchemy import (
     Column, String, Float, Date, Enum, ForeignKey, Boolean, BigInteger, Integer
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
-
-class User(Base):
-    __tablename__ = 'User'  # Ensure this matches the table name in the database
-
-    uuid = Column(String, primary_key=True)
-    email = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-    registeredAt = Column(Date, nullable=False)
-
-    user_options = relationship("UserOptions", back_populates="user", uselist=False)
-    user_macros = relationship("UserMacros", back_populates="user", uselist=False)
-    user_weights = relationship("UserWeight", back_populates="user")
-    water_intake = relationship("WaterIntake", back_populates="user")
-    favourite_recipes = relationship("FavouriteRecipes", back_populates="user")
-    user_meals = relationship("UserMeals", back_populates="user")
-
 
 class Gender(enum.Enum):
     MALE = "male"
@@ -39,6 +24,34 @@ class ActivityLevel(enum.Enum):
     LOW_ACTIVE = "low_active",
     ACTIVE = "active",
     VERY_ACTIVE = "very_active",
+
+
+class User(Base):
+    __tablename__ = 'User'
+
+    uuid = Column(String, primary_key=True)
+    email = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    registeredAt = Column(Date, nullable=False)
+
+    user_options = relationship("UserOptions", back_populates="user", uselist=False)
+    user_macros = relationship("UserMacros", back_populates="user", uselist=False)
+    user_weights = relationship("UserWeight", back_populates="user")
+    water_intake = relationship("WaterIntake", back_populates="user")
+    favourite_recipes = relationship("FavouriteRecipes", back_populates="user")
+    user_meals = relationship("UserMeals", back_populates="user")  # Corrected placement
+
+
+class UserMeals(Base):
+    __tablename__ = 'UserMeals'
+
+    uuid = Column(String, primary_key=True)
+    userUuid = Column(String, ForeignKey('User.uuid'))
+    mealUuid = Column(String, ForeignKey('Meal.uuid'))
+    date = Column(Date)
+
+    user = relationship("User", back_populates="user_meals")
+    meal = relationship("Meal", back_populates="user_meals")
 
 
 class UserOptions(Base):
@@ -92,6 +105,9 @@ class Recipe(Base):
     fats = Column(BigInteger)
     calories = Column(BigInteger)
     carbs = Column(BigInteger)
+    isPopular = Column(Boolean)
+    coverImage = Column(String)
+    ingredients = Column(ARRAY(String))
     title = Column(String)
     cookingTime = Column(String)
     mealType = Column(String)
@@ -118,7 +134,7 @@ class Meal(Base):
     date = Column(Date)
 
     userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
-    user = relationship("User", back_populates="meal")
+    user_meals = relationship("UserMeals", back_populates="meal")  # Fix back_populates to 'user_meals'
 
 class FavouriteRecipes(Base):
     __tablename__ = 'FavouriteRecipes'
