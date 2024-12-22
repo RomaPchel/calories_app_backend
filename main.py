@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from lib.controllers.UserMacrosController import userMacrosRouter
 from lib.controllers.UserMealsController import userMealsRouter
 from lib.controllers.UserOptionsController import userOptionsRouter
+from lib.controllers.RecipesController import recipesRouter
 from lib.controllers.AuthController import authRouter
 from lib.controllers.UserWaterIntakeController import userWaterIntakesRouter
 from lib.controllers.UserWeightController import userWeightRouter
@@ -16,6 +17,7 @@ app.include_router(userMacrosRouter, prefix="/api", tags=["UserMacros"])
 app.include_router(userMealsRouter, prefix="/api", tags=["UserMeals"])
 app.include_router(userWaterIntakesRouter, prefix="/api", tags=["UserWaterIntakes"])
 app.include_router(userWeightRouter, prefix="/api", tags=["UserWeights"])
+app.include_router(recipesRouter, prefix="/api", tags=["Recipes"])
 
 print(get_db)
 

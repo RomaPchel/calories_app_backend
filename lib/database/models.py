@@ -94,7 +94,7 @@ class Recipe(Base):
     carbs = Column(BigInteger)
     title = Column(String)
     cookingTime = Column(String)
-    mealType = Column(Enum("Breakfast", "Lunch", "Dinner", "Snack", name="mealtype"))
+    mealType = Column(String)
 
     favourite_recipes = relationship("FavouriteRecipes", back_populates="recipe")
 
