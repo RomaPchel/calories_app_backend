@@ -1,12 +1,10 @@
 import enum
-
 from sqlalchemy import (
     Column, String, Float, Date, Enum, ForeignKey, Boolean, BigInteger, Integer
 )
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
+from lib.database.config import Base
 
-Base = declarative_base()
 
 class Gender(enum.Enum):
     MALE = "male"

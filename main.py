@@ -7,7 +7,7 @@ from lib.controllers.RecipesController import recipesRouter
 from lib.controllers.AuthController import authRouter
 from lib.controllers.UserWaterIntakeController import userWaterIntakesRouter
 from lib.controllers.UserWeightController import userWeightRouter
-from lib.database.config import get_db
+from lib.database.config import engine, Base
 
 app = FastAPI()
 
@@ -18,8 +18,6 @@ app.include_router(userMealsRouter, prefix="/api", tags=["UserMeals"])
 app.include_router(userWaterIntakesRouter, prefix="/api", tags=["UserWaterIntakes"])
 app.include_router(userWeightRouter, prefix="/api", tags=["UserWeights"])
 app.include_router(recipesRouter, prefix="/api", tags=["Recipes"])
-
-print(get_db)
 
 @app.get("/")
 def read_root():

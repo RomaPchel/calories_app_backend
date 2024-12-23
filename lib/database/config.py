@@ -1,10 +1,20 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Table
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+import os
 
-DATABASE_URL = "postgresql://postgres@localhost:5432"
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve database URL from environment variables
+DATABASE_URL = (
+    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+    f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}?sslmode={os.getenv('DB_SSLMODE')}"
+)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 Base = declarative_base()
 def get_db():
