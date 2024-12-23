@@ -76,7 +76,7 @@ def delete_water_intake(water_intake_id: uuid.UUID, db: Session = Depends(get_db
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userWaterIntakesRouter.get("/get_water_intakes")
+@userWaterIntakesRouter.get("/water_intakes")
 def get_water_intakes(
         day: str,
         db: Session = Depends(get_db),
@@ -103,7 +103,7 @@ def get_water_intakes(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userWaterIntakesRouter.get("/recommended-water_intake", status_code=200)
+@userWaterIntakesRouter.get("/recommended_water_intake", status_code=200)
 def recommended_water_intake(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         # Get user from token

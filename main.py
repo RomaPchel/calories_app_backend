@@ -3,11 +3,10 @@ from fastapi import FastAPI
 from lib.controllers.UserMacrosController import userMacrosRouter
 from lib.controllers.UserMealsController import userMealsRouter
 from lib.controllers.UserOptionsController import userOptionsRouter
-from lib.controllers.RecipesController import recipesRouter
-from lib.controllers.AuthController import authRouter
 from lib.controllers.UserWaterIntakeController import userWaterIntakesRouter
 from lib.controllers.UserWeightController import userWeightRouter
-from lib.database.config import engine, Base
+from lib.controllers.AuthController import authRouter
+from lib.controllers.RecipesController import recipesRouter
 
 app = FastAPI()
 
