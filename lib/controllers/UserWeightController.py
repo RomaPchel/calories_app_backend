@@ -53,7 +53,7 @@ def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), tok
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@userWeightRouter.get("/get_weights", response_model=list[UserWeightResponse])
+@userWeightRouter.get("/weights", response_model=list[UserWeightResponse])
 def get_user_weights(
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,

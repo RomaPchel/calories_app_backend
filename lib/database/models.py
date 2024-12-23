@@ -3,10 +3,10 @@ import enum
 from sqlalchemy import (
     Column, String, Float, Date, Enum, ForeignKey, Boolean, BigInteger, Integer
 )
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from lib.database.config import Base
+
 
 class Gender(enum.Enum):
     MALE = "male"
@@ -91,7 +91,7 @@ class WaterIntake(Base):
     __tablename__ = 'WaterIntake'
 
     uuid = Column(BigInteger, primary_key=True, autoincrement=True)
-    currentIntake = Column(Integer)
+    ml = Column(Integer)
     date = Column(Date)
 
     userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
