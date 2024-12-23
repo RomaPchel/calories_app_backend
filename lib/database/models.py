@@ -107,7 +107,7 @@ class Recipe(Base):
     carbs = Column(BigInteger)
     isPopular = Column(Boolean)
     coverImage = Column(String)
-    ingredients = Column(ARRAY(String))
+    description = Column(String)
     title = Column(String)
     cookingTime = Column(String)
     mealType = Column(String)
