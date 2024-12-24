@@ -7,14 +7,14 @@ from lib.database.config import Base
 
 
 class Gender(enum.Enum):
-    MALE = "male"
-    FEMALE = "female"
+    MALE = "Чоловік"
+    FEMALE = "Жінка"
 
 
 class WeightGoal(enum.Enum):
-    LOSE = "lose",
-    KEEP = "keep",
-    GAIN = "gain",
+    LOSE = "Втратити вагу",
+    KEEP = "Підтримувати нинішню вагу",
+    GAIN = "Набрати вагу",
 
 
 class ActivityLevel(enum.Enum):
@@ -56,12 +56,13 @@ class UserOptions(Base):
     __tablename__ = 'UserOptions'
 
     userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)  # Correct ForeignKey reference
-    gender = Column(Enum(Gender), nullable=False)
-    height = Column(Integer)
+    gender = Column(String)
+    height = Column(Float)
     weight = Column(Float)
-    weightGoal = Column(Enum(WeightGoal), nullable=False)
-    activityLevel = Column(Enum(ActivityLevel), nullable=False)
+    weightGoal = Column(String)
+    activityLevel = Column(String)
     age = Column(Integer)
+    caloriesIntake = Column(Integer)
 
     user = relationship("User", back_populates="user_options")
 

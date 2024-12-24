@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from lib.database.config import get_db
 from lib.database.models import UserOptions, UserMacros, WeightGoal, ActivityLevel, Gender
-from lib.utils.UserMacrosUtils import calculate_user_macros
+from lib.utils.UserMacrosUtils import calculate_user_macros, calculate_user_intake
 from lib.utils.UserUtils import get_user_from_token
 
 userOptionsRouter = APIRouter()
@@ -13,11 +13,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class UserOptionsSchema(BaseModel):
-    gender: Gender
-    height: int
+    gender: str
+    height: float
     weight: float
-    weightGoal: WeightGoal
-    activityLevel: ActivityLevel
+    weightGoal: str
+    activityLevel: str
     age: int
 
 
@@ -25,8 +25,6 @@ class UserOptionsSchema(BaseModel):
 def save_user_options(user_options: UserOptionsSchema, db: Session = Depends(get_db),
                       token: str = Depends(oauth2_scheme)):
     try:
-        print(token)
-
         # Get user from token
         user = get_user_from_token(token, db)
 
@@ -35,8 +33,8 @@ def save_user_options(user_options: UserOptionsSchema, db: Session = Depends(get
         if existing_user_options:
             raise HTTPException(status_code=400, detail="UserOptions already exist for this user.")
 
+        intake = calculate_user_intake(user_options)
         # Create new user options
-        print(user)
         new_user_options = UserOptions(
             userUuid=user.uuid,  # Use the UUID of the user from the database
             gender=user_options.gender,
@@ -44,10 +42,10 @@ def save_user_options(user_options: UserOptionsSchema, db: Session = Depends(get
             weight=user_options.weight,
             weightGoal=user_options.weightGoal,
             activityLevel=user_options.activityLevel,
-            age=user_options.age
+            age=user_options.age,
+            caloriesIntake=intake,
         )
 
-        # Add to DB and commit
         db.add(new_user_options)
         db.commit()
         db.refresh(new_user_options)
@@ -106,8 +104,6 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
 @userOptionsRouter.get("/get-user-options", status_code=200)
 def get_user_options(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
-        print(token)
-
         # Get user from token
         user = get_user_from_token(token, db)
 
@@ -118,15 +114,15 @@ def get_user_options(db: Session = Depends(get_db), token: str = Depends(oauth2_
 
         # Return the user options as a dictionary
         return {
-            "message": "UserOptions retrieved successfully",
-            "data": {
+                "email": user.email,
                 "gender": user_options.gender,
                 "height": user_options.height,
                 "weight": user_options.weight,
                 "weightGoal": user_options.weightGoal,
                 "activityLevel": user_options.activityLevel,
+                "calorieIntake": user_options.caloriesIntake,
                 "age": user_options.age
-            }
+
         }
 
     except HTTPException as e:
