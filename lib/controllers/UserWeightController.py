@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -18,10 +18,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # Pydantic Model for adding weight
 class UserWeightCreate(BaseModel):
     weight: float
+    date: str
 
 
 class UserWeightResponse(BaseModel):
-    userUuid: str
     weight: float
     date: str
 
@@ -38,7 +38,7 @@ def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), tok
         new_weight = UserWeight(
             userUuid=user.uuid,
             weight=weight.weight,
-            date=date.today()
+            date= datetime.strptime(weight.date, "%Y-%m-%d").date(),
         )
 
         db.add(new_weight)
@@ -47,16 +47,18 @@ def add_user_weight(weight: UserWeightCreate, db: Session = Depends(get_db), tok
         return {"message": "Weight added successfully", "data": weight.dict()}
 
     except HTTPException as e:
+        print(e)
         raise e
     except Exception as e:
         db.rollback()
+        print(e)
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
 @userWeightRouter.get("/weights", response_model=list[UserWeightResponse])
 def get_user_weights(
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        # start_date: Optional[str] = None,
+        # end_date: Optional[str] = None,
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
 ):
@@ -64,20 +66,24 @@ def get_user_weights(
         # Get user from token
         user = get_user_from_token(token, db)
 
-        start_of_day, end_of_day = parse_dates(start_date, end_date)
+        # start_of_day, end_of_day = parse_dates(start_date, end_date)
 
         query = db.query(UserWeight).filter(UserWeight.userUuid == user.uuid)
 
-        if start_of_day and end_of_day:
-            query = query.filter(start_of_day <= UserWeight.date <= end_of_day)
-        elif start_of_day:
-            query = query.filter(UserWeight.date >= start_of_day)
-        elif end_of_day:
-            query = query.filter(UserWeight.date <= end_of_day)
+        # if start_of_day and end_of_day:
+        #     query = query.filter(start_of_day <= UserWeight.date <= end_of_day)
+        # elif start_of_day:
+        #     query = query.filter(UserWeight.date >= start_of_day)
+        # elif end_of_day:
+        #     query = query.filter(UserWeight.date <= end_of_day)
 
         weights = query.all()
 
-        return weights
+        weights_response = [
+            {"date": weight.date.isoformat(), "weight": weight.weight} for weight in weights
+        ]
+
+        return weights_response
 
     except HTTPException as e:
         raise e
