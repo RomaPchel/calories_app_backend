@@ -82,3 +82,21 @@ def get_meals(
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+@userMealsRouter.delete("/meals/{uuid}")
+def delete_meal(uuid: str, db: Session = Depends(get_db)):
+    try:
+        meal = db.query(Meal).filter(Meal.uuid == uuid).first()
+        if not meal:
+            raise HTTPException(status_code=404, detail="Meal not found")
+        db.delete(meal)
+        db.commit()
+        return {"message": "Meal deleted successfully"}
+    except HTTPException as e:
+        print(e)
+        raise e
+    except Exception as e:
+        db.rollback()
+        print(e)
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
