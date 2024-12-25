@@ -56,6 +56,7 @@ def update_user_macros(user_macros: UserMacrosSchema, db: Session = Depends(get_
 @userMacrosRouter.get("/get-user-macros", status_code=200)
 def get_user_macros(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
+        print(token)
         # Get user from token
         user = get_user_from_token(token, db)
 
@@ -64,16 +65,15 @@ def get_user_macros(db: Session = Depends(get_db), token: str = Depends(oauth2_s
         if not user_macros:
             raise HTTPException(status_code=404, detail="UserMacros not found for this user.")
 
+        print(user_macros)
         # Return the retrieved UserMacros
-        return {
-            "message": "UserMacros retrieved successfully",
-            "data": {
+        return  {
                 "calories": user_macros.calories,
                 "proteins": user_macros.proteins,
                 "carbs": user_macros.carbs,
                 "fats": user_macros.fats
             }
-        }
+
 
     except HTTPException as e:
         raise e
