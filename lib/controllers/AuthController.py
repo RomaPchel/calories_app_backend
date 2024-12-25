@@ -12,7 +12,7 @@ from lib.database.models import User
 
 SECRET_KEY = "super-secret-access-token-key"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 180
 
 authRouter = APIRouter()
 

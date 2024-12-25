@@ -83,6 +83,7 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
         existing_user_options.weightGoal = user_options.weightGoal
         existing_user_options.activityLevel = user_options.activityLevel
         existing_user_options.age = user_options.age
+        existing_user_options.caloriesIntake = calculate_user_intake(user_options)
 
         # Commit changes to the database
         db.commit()
@@ -104,9 +105,11 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
 @userOptionsRouter.get("/get-user-options", status_code=200)
 def get_user_options(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
+        print(token)
         # Get user from token
         user = get_user_from_token(token, db)
 
+        print(user.uuid)
         # Fetch user options from the database
         user_options = db.query(UserOptions).filter(UserOptions.userUuid == user.uuid).first()
         if not user_options:
