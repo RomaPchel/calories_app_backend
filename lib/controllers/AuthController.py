@@ -17,7 +17,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 180
 authRouter = APIRouter()
 
 class RegisterSchema(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 class LoginSchema(BaseModel):
@@ -62,7 +62,6 @@ def login(user_data: LoginSchema, db: Session = Depends(get_db)):
     if not user or not bcrypt.verify(user_data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # Encode both email and user UUID in the JWT token (convert UUID to string)
     access_token = create_access_token(data={"sub": user.email, "uuid": str(user.uuid)})
     print(access_token)
     return {"accessToken": access_token, "token_type": "bearer"}

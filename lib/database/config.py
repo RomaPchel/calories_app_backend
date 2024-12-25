@@ -3,10 +3,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Retrieve database URL from environment variables
 DATABASE_URL = (
     f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
     f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}?sslmode={os.getenv('DB_SSLMODE')}"

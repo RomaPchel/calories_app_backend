@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from lib.database.config import get_db
-from lib.database.models import UserOptions, UserMacros, WeightGoal, ActivityLevel, Gender
+from lib.database.models import UserOptions, UserMacros
 from lib.utils.UserMacrosUtils import calculate_user_macros, calculate_user_intake
 from lib.utils.UserUtils import get_user_from_token
 
@@ -25,18 +25,15 @@ class UserOptionsSchema(BaseModel):
 def save_user_options(user_options: UserOptionsSchema, db: Session = Depends(get_db),
                       token: str = Depends(oauth2_scheme)):
     try:
-        # Get user from token
         user = get_user_from_token(token, db)
 
-        # Check if user options already exist for this user
         existing_user_options = db.query(UserOptions).filter(UserOptions.userUuid == user.uuid).first()
         if existing_user_options:
             raise HTTPException(status_code=400, detail="UserOptions already exist for this user.")
 
         intake = calculate_user_intake(user_options)
-        # Create new user options
         new_user_options = UserOptions(
-            userUuid=user.uuid,  # Use the UUID of the user from the database
+            userUuid=user.uuid,
             gender=user_options.gender,
             height=user_options.height,
             weight=user_options.weight,
@@ -68,15 +65,12 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
     try:
         print(token)
 
-        # Get user from token
         user = get_user_from_token(token, db)
 
-        # Check if user options already exist for this user
         existing_user_options = db.query(UserOptions).filter(UserOptions.userUuid == user.uuid).first()
         if not existing_user_options:
             raise HTTPException(status_code=400, detail="UserOptions not found for this user.")
 
-        # Update the existing user options
         existing_user_options.gender = user_options.gender
         existing_user_options.height = user_options.height
         existing_user_options.weight = user_options.weight
@@ -85,7 +79,6 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
         existing_user_options.age = user_options.age
         existing_user_options.caloriesIntake = calculate_user_intake(user_options)
 
-        # Commit changes to the database
         db.commit()
         db.refresh(existing_user_options)
 
@@ -105,17 +98,12 @@ def update_user_options(user_options: UserOptionsSchema, db: Session = Depends(g
 @userOptionsRouter.get("/get-user-options", status_code=200)
 def get_user_options(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
-        print(token)
-        # Get user from token
         user = get_user_from_token(token, db)
 
-        print(user.uuid)
-        # Fetch user options from the database
         user_options = db.query(UserOptions).filter(UserOptions.userUuid == user.uuid).first()
         if not user_options:
             raise HTTPException(status_code=404, detail="UserOptions not found for this user.")
 
-        # Return the user options as a dictionary
         return {
                 "email": user.email,
                 "gender": user_options.gender,
@@ -135,16 +123,13 @@ def get_user_options(db: Session = Depends(get_db), token: str = Depends(oauth2_
 
 
 def saveOrUpdateUserMacros(db, user, user_macros):
-    # Check if UserMacros already exist
     existing_user_macros = db.query(UserMacros).filter(UserMacros.userUuid == user.uuid).first()
     if existing_user_macros:
-        # Update existing UserMacros
         existing_user_macros.calories = user_macros.calories
         existing_user_macros.proteins = user_macros.proteins
         existing_user_macros.fats = user_macros.fats
         existing_user_macros.carbs = user_macros.carbs
     else:
-        # Create new UserMacros
         new_user_macros = UserMacros(
             userUuid=user.uuid,
             calories=user_macros.calories,
@@ -153,5 +138,4 @@ def saveOrUpdateUserMacros(db, user, user_macros):
             carbs=user_macros.carbs
         )
         db.add(new_user_macros)
-    # Commit changes to the database
     db.commit()

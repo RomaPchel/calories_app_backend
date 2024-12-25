@@ -37,7 +37,7 @@ class User(Base):
     user_weights = relationship("UserWeight", back_populates="user")
     water_intake = relationship("WaterIntake", back_populates="user")
     favourite_recipes = relationship("FavouriteRecipes", back_populates="user")
-    user_meals = relationship("UserMeals", back_populates="user")  # Corrected placement
+    user_meals = relationship("UserMeals", back_populates="user")
 
 
 class UserMeals(Base):
@@ -55,7 +55,7 @@ class UserMeals(Base):
 class UserOptions(Base):
     __tablename__ = 'UserOptions'
 
-    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)  # Correct ForeignKey reference
+    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)
     gender = Column(String)
     height = Column(Float)
     weight = Column(Float)
@@ -69,7 +69,7 @@ class UserOptions(Base):
 class UserMacros(Base):
     __tablename__ = 'UserMacros'
 
-    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)  # Correct ForeignKey reference
+    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)
     calories = Column(BigInteger)
     proteins = Column(BigInteger)
     carbs = Column(BigInteger)
@@ -80,7 +80,7 @@ class UserMacros(Base):
 class UserWeight(Base):
     __tablename__ = 'UserWeight'
 
-    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)  # Correct ForeignKey reference
+    userUuid = Column(String, ForeignKey('User.uuid'), primary_key=True)
     weight = Column(Float)
     date = Column(Date, primary_key=True)
 
@@ -93,7 +93,7 @@ class WaterIntake(Base):
     currentIntake = Column(Integer)
     date = Column(Date)
 
-    userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
+    userUuid = Column(String, ForeignKey('User.uuid'))
     user = relationship("User", back_populates="water_intake")
 
 class Recipe(Base):
@@ -122,7 +122,7 @@ class MealType(enum.Enum):
 class Meal(Base):
     __tablename__ = 'Meal'
 
-    uuid = Column(String, primary_key=True)  # UUID
+    uuid = Column(String, primary_key=True)
     title = Column(String)
     fats = Column(BigInteger)
     proteins = Column(BigInteger)
@@ -132,14 +132,14 @@ class Meal(Base):
     weight = Column(BigInteger)
     date = Column(Date)
 
-    userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
-    user_meals = relationship("UserMeals", back_populates="meal")  # Fix back_populates to 'user_meals'
+    userUuid = Column(String, ForeignKey('User.uuid'))
+    user_meals = relationship("UserMeals", back_populates="meal")
 
 class FavouriteRecipes(Base):
     __tablename__ = 'FavouriteRecipes'
 
-    uuid = Column(String, primary_key=True)  # UUID
-    userUuid = Column(String, ForeignKey('User.uuid'))  # Correct ForeignKey reference
+    uuid = Column(String, primary_key=True)
+    userUuid = Column(String, ForeignKey('User.uuid'))
     recipeUuid = Column(String, ForeignKey('Recipe.uuid'))
 
     user = relationship("User", back_populates="favourite_recipes")
